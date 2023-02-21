@@ -1,8 +1,10 @@
-﻿using EnzoCommanderSDK.SDK.Handlers;
+﻿using CsvHelper;
+using EnzoCommanderSDK.SDK.Handlers;
 using EnzoCommanderSDK.SDK.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -237,6 +239,79 @@ namespace EnzoCommanderSDK.mef.structure
 
 
             //if (!File.Exists(filePath)) throw new FileNotFoundException($"{this.GetType().FullName} - SendFileAsync(): {filePath} was not found!");
+
+
+            return rsl;
+        }
+
+        public virtual async Task<bool> SendFileAsync<T>(List<T> obj, string mapping) where T : class, new()
+        {
+            bool rsl = false;
+
+            string url = this.GetURL(sendFile: true);
+
+            using (StreamWriter ms = new StreamWriter(new MemoryStream()))
+            {
+
+                try
+                {
+                    using (var csv = new CsvWriter(ms, CultureInfo.InvariantCulture))
+                    {
+
+                        await csv.WriteRecordsAsync(obj);
+
+                        var content = BuildContent(mapping, mapping, ms.BaseStream);
+
+                        using (HttpClient client = new HttpClient())
+                        {
+                            var rsp = await client.PostAsync(url, content);
+
+
+                            switch (rsp.StatusCode)
+                            {
+                                case HttpStatusCode.OK:
+
+                                    return true;
+                                default:
+                                    OnHandshakeFailed(this, new EnzoCommandEventArgs
+                                    {
+                                        Error = await ErrorFactory(rsp)
+                                    });
+
+                                    return false;
+                            }
+
+
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnHandshakeFailed(this, new EnzoCommandEventArgs
+                    {
+                        Error = new ErrorResponse
+                        {
+                            code = ex.Message,
+                            data = new Data
+                            {
+                                details = new[]{
+                                    ex.Data
+                                }
+                            }
+                        }
+                    });
+
+                    throw new Exception($"{this.GetType().Name} - SendAsync()", ex);
+                }
+                finally
+                {
+                    ms.Close();
+                }
+
+
+            }
+
 
 
             return rsl;
