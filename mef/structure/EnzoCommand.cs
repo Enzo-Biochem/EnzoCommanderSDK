@@ -79,7 +79,7 @@ namespace EnzoCommanderSDK.mef.structure
 
             filePath = $"{filePath}{fileName}";
 
-            var form = BuildContent(mapping, fileName);
+            var form = BuildContent(mapping, fileName); //BuildContent(mapping, fileName);
 
             using (HttpClient client = new HttpClient())
             {
@@ -323,49 +323,104 @@ namespace EnzoCommanderSDK.mef.structure
             return $"{this.GetType().FullName} \n Version: {this.GetType().Assembly.ImageRuntimeVersion}";
         }
 
-        public virtual HttpContent? BuildContent(string mapping, string fileName, Stream? fileStrm = null)
+        //public virtual HttpContent? BuildContent(string mapping, string fileName, Stream? fileStrm = null)
+        //{
+        //    HttpContent content = null;
+
+        //    if (fileStrm != null)
+        //    {
+        //        //Send file, we need multipart:
+
+
+        //        if (string.IsNullOrEmpty(_apiKey)) throw new Exception($"{nameof(_apiKey)} cannot be null!");
+        //        if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
+
+        //        bool rsl = false;
+
+        //        //FilePathExists(_filePath);
+
+        //        //if (!File.Exists(fileName)) return null; //Nothing to send...
+
+        //        ////var strm = File.OpenRead(fileName);
+
+        //        //if (strm.Length == 0) return null;
+
+        //        content = new MultipartFormDataContent()
+        //        {
+        //            {new StringContent("api_key"), _apiKey },
+        //            {new StringContent("mapping"), mapping },
+        //            {new StreamContent (fileStrm),"file",$"{fileName}.csv" }
+        //        };
+        //    }
+        //    else
+        //    {
+        //        //Get file just need FormUrlEncode:
+        //        Dictionary<string, string> parameters = new Dictionary<string, string>{
+        //                                                                                {"api_key",_apiKey},
+        //                                                                                {"mapping", mapping },
+        //                                                                                {"file", fileName }
+        //                                                                               };
+
+        //        content = new FormUrlEncodedContent(parameters);
+        //    }
+
+        //    return content;
+        //}
+
+        public virtual HttpContent BuildContent(string apiKey, string mapping, string fileName, IDictionary<string, string>? param, Stream fileArry)
         {
-            HttpContent content = null;
 
-            if (fileStrm != null)
+            if (param == null) param = new Dictionary<string, string>();
+
+            if (!param.ContainsKey("api_key")) param["api_key"] = apiKey;
+            if (!param.ContainsKey("mapping")) param["mapping"] = mapping;
+
+            HttpContent form = null;
+
+            List<HttpContent> contents = new List<HttpContent>();
+
+            if (fileArry == null || fileArry.Length == 0)
             {
-                //Send file, we need multipart:
-
-
-                if (string.IsNullOrEmpty(_apiKey)) throw new Exception($"{nameof(_apiKey)} cannot be null!");
-                if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
-
-                bool rsl = false;
-
-                //FilePathExists(_filePath);
-
-                //if (!File.Exists(fileName)) return null; //Nothing to send...
-
-                ////var strm = File.OpenRead(fileName);
-
-                //if (strm.Length == 0) return null;
-
-                content = new MultipartFormDataContent()
-                {
-                    {new StringContent("api_key"), _apiKey },
-                    {new StringContent("mapping"), mapping },
-                    {new StreamContent (fileStrm),"file",$"{fileName}.csv" }
-                };
+                //form.Add(new StringContent("file"), fileName);
+                param["file"] = fileName;
+                form = new FormUrlEncodedContent(param);
             }
             else
             {
-                //Get file just need FormUrlEncode:
-                Dictionary<string, string> parameters = new Dictionary<string, string>{
-                                                                                        {"api_key",_apiKey},
-                                                                                        {"mapping", mapping },
-                                                                                        {"file", fileName }
-                                                                                       };
+                var tmp = new MultipartFormDataContent();
 
-                content = new FormUrlEncodedContent(parameters);
+                foreach (var kvp in param)
+                {
+                    var str = new StringContent(kvp.Key);
+
+                    tmp.Add(new StringContent(kvp.Value), kvp.Key);
+                }
+
+                tmp.Add(new StreamContent(fileArry), "file", fileName);
+
+                form = tmp;
             }
 
-            return content;
+
+            //foreach (var kvp in param)
+            //{
+            //    var str = new StringContent(kvp.Key);
+
+            //    form.Add(new StringContent(kvp.Value), kvp.Key);
+            //}
+
+            //if (fileArry == null || fileArry.Length == 0)
+            //{
+            //    form.Add(new StringContent("file"), fileName);
+            //}
+            //else
+            //{
+            //    form.Add(new StreamContent(fileArry), "file", fileName);
+            //}
+
+            return form;
         }
+
         public virtual string GetURL(bool? sendFile = null)
         {
 

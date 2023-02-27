@@ -14,6 +14,8 @@ namespace EnzoCommanderSDK.Structures.abstracts
 
         [Ignore]
         public DateTime? FileStamp { get; set; }
+        public OrderStructure() { }
+
         public OrderStructure(string fileName)
         {
             FileName = fileName;

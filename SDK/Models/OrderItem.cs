@@ -6,6 +6,7 @@ namespace EnzoCommanderSDK.Models
 {
     public class OrderItem : OrderStructure
     {
+        public OrderItem() { }
         public OrderItem(string fileName) : base(fileName)
         {
 
@@ -19,6 +20,8 @@ namespace EnzoCommanderSDK.Models
         public string? DocumentNo { get; set; }
         [Name("Quantity")]
         public int? Quantity { get; set; }
+        [Name("Unit of Measurement")]
+        public string? UnitOfMeasurement { get; set; }
         [Name("Unit Price")]
         public double? UnitPrice { get; set; }
     }

@@ -1,26 +1,19 @@
-﻿
-using EnzoCommanderSDK.Structures.abstracts;
-using EnzoCommanderSDK;
-using Name = CsvHelper.Configuration.Attributes.NameAttribute;
-using EnzoCommanderSDK.Structures.interfaces;
+﻿using CsvHelper.Configuration.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace EnzoCommanderSDK.Models
+namespace EnzoCommanderSDK.Structures.interfaces
 {
-
-    public class OrderHeader:OrderStructure//,IOrderHeader
+    public interface IOrderHeader
     {
-
-        public OrderHeader() { }
-        public OrderHeader(string fileName) : base(fileName)
-        {
-        }
 
         [Name("No_")]
         public string? No { get; set; }
         [Name("Order Number")]
         public string? OrderNumber { get; set; }
-        [Name("Customer Order No.")]
-        public string? CustomerOrderNo { get; set; }
         [Name("Sell-to Customer No_")]
         public string? SellToCustomerNo { get; set; }
         [Name("Bill-to Customer No_")]
@@ -61,9 +54,5 @@ namespace EnzoCommanderSDK.Models
         public string? OrderPlacedByEmail { get; set; }
         [Name("enzo_user_id")]
         public string? EnzoUserId { get; set; }
-        [Name("Credit Card Token")]
-        public string? CreditCardToken { get; set; }
-        public string? Comments { get; set; }
-
     }
 }
