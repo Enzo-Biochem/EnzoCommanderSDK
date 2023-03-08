@@ -65,6 +65,8 @@ namespace EnzoCommanderSDK.mef
                 throw new Exception($"Commander - SendFile(): {mapping} component was not found!");
             }
 
+            if (!ops.Metadata.CanSend) return true;
+
             ops.Value.HandshakeFailed += (sender, err) =>
             {
                 OnHandshakeFailed.Invoke(sender, err);
@@ -133,6 +135,8 @@ namespace EnzoCommanderSDK.mef
             //    return;
 
             //};
+
+            if (!ops.Metadata.CanGet) return true;
 
             ops.Value.HandshakeFailed += (sender, err) =>
             {

@@ -44,5 +44,7 @@ namespace EnzoCommanderSDK.mef.Interface
     public interface IEnzoCommandData
     {
         string Mapping { get; }
+        bool CanGet { get; }
+        bool CanSend { get; }
     }
 }

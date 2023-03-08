@@ -182,7 +182,7 @@ namespace EnzoCommanderSDK.mef.structure
                 fileName = parsedFile[parsedFile.Length - 1];
 
 
-                var form = BuildContent(mapping, fileName, fileStrm);
+                var form = BuildContent(mapping, fileName, fileStrm: fileStrm);
 
                 //if it's null the file was found but no content in it.
                 if (form == null) { return true; }
@@ -244,6 +244,14 @@ namespace EnzoCommanderSDK.mef.structure
             return rsl;
         }
 
+        /// <summary>
+        /// Sends object of type List<T> directly to its HTTP destination without first creating a file.
+        /// </summary>
+        /// <typeparam name="T">Object of desired type</typeparam>
+        /// <param name="obj"></param>
+        /// <param name="mapping"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public virtual async Task<bool> SendFileAsync<T>(List<T> obj, string mapping) where T : class, new()
         {
             bool rsl = false;
@@ -260,7 +268,7 @@ namespace EnzoCommanderSDK.mef.structure
 
                         await csv.WriteRecordsAsync(obj);
 
-                        var content = BuildContent(mapping, mapping, ms.BaseStream);
+                        var content = BuildContent(mapping, mapping, fileStrm: ms.BaseStream);
 
                         using (HttpClient client = new HttpClient())
                         {
@@ -367,19 +375,23 @@ namespace EnzoCommanderSDK.mef.structure
         //    return content;
         //}
 
-        public virtual HttpContent BuildContent(string apiKey, string mapping, string fileName, IDictionary<string, string>? param, Stream fileArry)
+
+
+
+        //public virtual HttpContent BuildContent(string apiKey, string mapping, string fileName, IDictionary<string, string>? param, Stream? fileArry)
+        public virtual HttpContent BuildContent(string mapping, string fileName, IDictionary<string, string>? param = null, Stream? fileStrm = null)
         {
 
             if (param == null) param = new Dictionary<string, string>();
 
-            if (!param.ContainsKey("api_key")) param["api_key"] = apiKey;
+            if (!param.ContainsKey("api_key")) param["api_key"] = _apiKey;
             if (!param.ContainsKey("mapping")) param["mapping"] = mapping;
 
             HttpContent form = null;
 
             List<HttpContent> contents = new List<HttpContent>();
 
-            if (fileArry == null || fileArry.Length == 0)
+            if (fileStrm == null || fileStrm.Length == 0)
             {
                 //form.Add(new StringContent("file"), fileName);
                 param["file"] = fileName;
@@ -396,7 +408,7 @@ namespace EnzoCommanderSDK.mef.structure
                     tmp.Add(new StringContent(kvp.Value), kvp.Key);
                 }
 
-                tmp.Add(new StreamContent(fileArry), "file", fileName);
+                tmp.Add(new StreamContent(fileStrm), "file", fileName);
 
                 form = tmp;
             }

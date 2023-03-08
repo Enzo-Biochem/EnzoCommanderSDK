@@ -10,15 +10,19 @@ namespace EnzoCommanderSDK.Structures.abstracts
     public abstract class OrderStructure
     {
         [Ignore]
-        public string FileName { get; set; }
+        public string LoadFileName { get; set; }
 
         [Ignore]
-        public DateTime? FileStamp { get; set; }
+        public DateTime? LoadFileDate { get; set; }
+        [Name("LoadStatus")]
+        [Optional]
+        public int? LoadStatus { get; set; }
         public OrderStructure() { }
 
         public OrderStructure(string fileName)
         {
-            FileName = fileName;
+            LoadFileName = fileName;
         }
+
     }
 }
