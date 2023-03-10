@@ -70,6 +70,8 @@ namespace EnzoCommanderSDK.Models
         public string? CreditCardToken { get; set; }
         [Name("OrderSystem")]
         public string? OrderSystem { get; set; }
+        [Name("Ship-To Tax Liable")]
+        public string? ShipToTaxLiable { get; set; }
         [Name("Comments")]
         public string? Comments { get; set; }
     }

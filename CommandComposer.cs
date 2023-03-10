@@ -27,6 +27,9 @@ namespace EnzoCommanderSDK
         //string _mapping { get; }
         [Export("fileName")]
         string? _fileName { get; }
+
+        [Export("uploadRoot")]
+        string? _uploadRoot { get; }
         //[Export]
         //bool? _sendFile { get; }
 
@@ -39,7 +42,7 @@ namespace EnzoCommanderSDK
 
         //public CommandComposer(string apiKey, string mapping, string fileName, STAGE stage = STAGE.PRE_PROD, bool? sendFile = null)
 
-        public CommandComposer(string apiKey, string fileDir, STAGE stage = STAGE.PRE_PROD, string? fileName = null)
+        public CommandComposer(string apiKey, string fileDir, string? uploadRoot = null, STAGE stage = STAGE.PRE_PROD, string? fileName = null)
         {
 
             //cmd = new Commander(apiKey, fileDir, stage);
@@ -47,6 +50,7 @@ namespace EnzoCommanderSDK
             _apiKey = apiKey;
             _fileDir = fileDir;
             _fileName = fileName;
+            _uploadRoot= uploadRoot;
             //_mapping = mapping;
             _stage = stage;
             //_sendFile = sendFile;

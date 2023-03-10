@@ -53,6 +53,47 @@ namespace EnzoCommanderSDK.mef
             _fileName = fileName;
         }
 
+        public virtual async Task<bool> GenerateFileAsync<T>(List<T> values, string mapping) where T : class, new()
+        {
+            bool rsl = false;
+            var ops = commands.ToList().Find(c => c.Metadata.Mapping.ToUpper().Contains(mapping.ToUpper()));
+
+            if (ops == null)
+            {
+                throw new Exception($"Commander - SendFile(): {mapping} component was not found!");
+            }
+
+            if (!ops.Metadata.CanSend) return false;
+
+            try
+            {
+                rsl = await ops.Value.GenerateCsvFile(values, mapping);
+
+            }
+            catch (Exception ex)
+            {
+                OnHandshakeFailed.Invoke(this, new EnzoCommandEventArgs
+                {
+                    Error = new ErrorResponse
+                    {
+                        code = ex.HResult.ToString(),
+                        message = ex.Message,
+                        data = new Data
+                        {
+                            details = new[]
+                              {
+                                  ex.StackTrace
+                              }
+                        }
+                    }
+                });
+
+                throw new Exception(ex.Message);
+            }
+
+            return rsl;
+        }
+
         public virtual async Task<bool> SendFile(string mapping)
         {
             bool rsl = false;
@@ -71,6 +112,7 @@ namespace EnzoCommanderSDK.mef
             {
                 OnHandshakeFailed.Invoke(sender, err);
             };
+
 
             rsl = await ops.Value.SendFileAsync(mapping);
 

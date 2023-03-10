@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using EnzoCommanderSDK.mef.Interface;
 using EnzoCommanderSDK.SDK.Handlers;
 using EnzoCommanderSDK.SDK.Models;
 using System;
@@ -8,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static EnzoCommanderSDK.mef.structure.EnzoCommand;
+//using static EnzoCommanderSDK.mef.structure.EnzoCommand;
 
 namespace EnzoCommanderSDK.mef.structure
 {
@@ -47,23 +48,73 @@ namespace EnzoCommanderSDK.mef.structure
         STAGE _stage { get; }
         public string _apiKey { get; }
         public string _filePath { get; }
+        public string? _uploadRoot { get; }
         public string? _fileName { get; }
 
-        //[ImportingConstructor]
-        //public EnzoCommand(string apiKey, string mapping, string fileName, STAGE stage = STAGE.PRE_PROD, bool? sendFile = null) : base()
-        public EnzoCommand([Import("apiKey")] string apiKey, [Import("fileDir")] string fileDir, [Import("stage")] STAGE stage = STAGE.PRE_PROD, [Import("fileName")] string? fileName = null)//(string apiKey, string fileDir, STAGE stage = STAGE.PRE_PROD)
+        public EnzoCommand([Import("apiKey")] string apiKey, [Import("fileDir")] string fileDir, [Import("uploadRoot")] string? uploadRoot = null, [Import("stage")] STAGE stage = STAGE.PRE_PROD, [Import("fileName")] string? fileName = null)//(string apiKey, string fileDir, STAGE stage = STAGE.PRE_PROD)
         {
             _apiKey = apiKey;
             _fileName = fileName;
             //_mapping = mapping;
             _filePath = fileDir;
             _stage = stage;
-            //_sendFile = sendFile;
+            _uploadRoot = uploadRoot;
             return;
         }
 
+        public virtual async Task<bool> GenerateCsvFile<T>(List<T> list, string mapping) where T : class, new()
+        {
 
-        //public EnzoCommand() { }
+            if (string.IsNullOrEmpty(_uploadRoot)) return false;
+
+            bool rsl = false;
+
+            if (!Directory.Exists(_uploadRoot)) Directory.CreateDirectory(_uploadRoot);
+
+
+            string stamp = $"{DateTime.Now.ToString("yyyyddMMHHmmss")}.csv";
+            string fileName = $"{mapping ?? this.GetType().Name.ToLower()}_{stamp}";
+
+            using (var sw = new StreamWriter($"{_uploadRoot.TrimEnd('\\')}\\{fileName}"))
+            {
+                try
+                {
+                    using (var csv = new CsvWriter(sw, CultureInfo.InvariantCulture))
+                    {
+
+                        await csv.WriteRecordsAsync(list);
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnHandshakeFailed(this, new EnzoCommandEventArgs
+                    {
+                        Error = new ErrorResponse
+                        {
+                            code = ex.HResult.ToString(),
+                            message = ex.Message,
+                            data = new Data
+                            {
+                                details = new[] {
+                                    ex.StackTrace ?? "Undefined stack trace.",
+                                    ex.InnerException?.Message ?? "No Inner exception found."
+                                }
+                            }
+                        }
+                    });
+
+                    throw new Exception("GenerateCsvFile()", ex);
+                }
+                finally
+                {
+                    sw.Close();
+                }
+            }
+
+
+            return rsl;
+        }
 
         public virtual async Task<bool> GetFileAsync(string mapping, string? fileName = null)
         {
